@@ -1,62 +1,168 @@
-# 🏠 Bangkok Property Market Analytics Pipeline
+# 🏙️ Bangkok Property Market ETL Pipeline
 
-## Overview
-End-to-end data engineering pipeline ingesting Bangkok property listings,
-transforming through a structured ETL process, and delivering a Power BI
-dashboard showing market trends by district, property type, and price tier.
+An end-to-end data engineering project that extracts, transforms, and loads Bangkok property listing data into PostgreSQL using Apache Airflow, with a Power BI dashboard for visualization.
 
-## Architecture
-```
-Raw CSV → Python ETL → PostgreSQL → Power BI Dashboard
-              ↑
-         Apache Airflow (orchestration)
-```
+---
 
-## Stack
-| Layer | Technology |
-|-------|-----------|
-| Ingestion | Python, Pandas |
-| Orchestration | Apache Airflow |
-| Storage | PostgreSQL (Docker) |
+## 📊 Dashboard Preview
+
+![Dashboard Preview](architecture/dashboard_preview.png)
+
+---
+
+## 🏗️ Architecture
+
+![Architecture](architecture/pipeline_architecture.png)
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Tool |
+|---|---|
+| Orchestration | Apache Airflow 2.7.0 |
+| Language | Python 3.12 |
+| Database | PostgreSQL 13 |
 | Visualization | Power BI |
-| Infrastructure | Docker, Docker Compose |
+| Containerization | Docker & Docker Compose |
+| Data Processing | Pandas, SQLAlchemy |
 
-## Key Findings
-- 563 raw listings → 183 clean records after deduplication and validation
-- Mid-range properties (2M–5M THB) make up 50% of the market
-- Condos dominate Bangkok listings
+---
 
-## How to Run
-### Prerequisites
-- Python 3.11+
-- Docker Desktop
-- Power BI Desktop
+## 📁 Project Structure
 
-### Steps
-```bash
-git clone https://github.com/STMM-Hub/data-engineering-portfolio
-cd 01-bangkok-property-pipeline
-cp .env.example .env
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-docker-compose up -d
-python pipeline.py
-```
-
-## Project Structure
 ```
 01-bangkok-property-pipeline/
-├── dags/                    # Airflow DAG definitions
-├── ingestion/               # Data extraction scripts
-├── transformation/          # Transform and load scripts
-├── sql/                     # Database schema
-├── dashboard/               # Power BI file
-├── data/                    # Raw data (gitignored)
-├── pipeline.py              # Manual pipeline runner
-├── docker-compose.yml       # Docker services
-└── requirements.txt         # Python dependencies
+├── architecture/
+│   └── dashboard_preview.png       # Power BI dashboard screenshot
+├── dags/
+│   └── bangkok_property_dag.py     # Airflow DAG with ETL + quality checks
+├── dashboard/
+│   └── Bangkok Property Dashboard.pbix  # Power BI dashboard file
+├── ingestion/
+│   └── extract.py                  # CSV extraction logic
+├── transformation/
+│   ├── transform.py                # Data cleaning and enrichment
+│   └── load.py                     # PostgreSQL loading logic
+├── sql/
+│   └── create_tables.sql           # Table schema and indexes
+├── data/
+│   └── raw_listings.csv            # Source data
+├── Dockerfile                      # Custom Airflow image with dependencies
+├── docker-compose.yml              # Multi-container setup
+├── requirements.txt                # Python dependencies
+└── .env                            # Environment variables (not committed)
 ```
 
-## Dashboard Preview
-![Bangkok Property Dashboard](./architecture/dashboard_preview.png)
+---
+
+## ⚙️ Pipeline Details
+
+### Extract
+- Reads raw property listings from CSV
+- Adds `ingestion_date` timestamp metadata
+
+### Transform
+- Standardizes column names
+- Converts area from sq ft to sq meters
+- Removes nulls, duplicates, and outliers
+- Calculates `price_per_sqm`
+- Categorizes listings into price tiers:
+  - Budget (< 2M THB)
+  - Mid-range (2M - 5M THB)
+  - Premium (5M - 10M THB)
+  - Luxury (> 10M THB)
+
+### Load
+- Creates `property_listings` table with indexes
+- Loads cleaned data into PostgreSQL
+- Verifies row count after load
+
+### Data Quality Checks
+Quality gates run after each stage:
+
+| Check | Stage |
+|---|---|
+| Row count > 0 | After Extract |
+| Required columns present | After Extract |
+| No nulls in critical columns | After Transform |
+| Data loss < 80% | After Transform |
+| Prices and areas are positive | After Transform |
+| Valid price tier values | After Transform |
+| DB row count matches loaded rows | After Load |
+| No nulls in DB critical columns | After Load |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Docker Desktop
+- Power BI Desktop (for dashboard)
+
+### Setup
+
+**1. Clone the repository**
+```bash
+git clone https://github.com/yourusername/data-engineering-portfolio.git
+cd data-engineering-portfolio/01-bangkok-property-pipeline
+```
+
+**2. Create your `.env` file**
+```env
+POSTGRES_USER=sithu
+POSTGRES_PASSWORD=sithu123
+POSTGRES_DB=bangkok_property
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+```
+
+**3. Build and start containers**
+```bash
+docker-compose build
+docker-compose up airflow-init
+docker-compose up -d
+```
+
+**4. Access Airflow UI**
+- URL: http://localhost:8080
+- Username: `admin`
+- Password: `admin123`
+
+**5. Trigger the DAG**
+- Find `bangkok_property_pipeline` in the DAG list
+- Click the ▶ button to trigger manually
+
+**6. Connect Power BI**
+- Open `dashboard/Bangkok Property Dashboard.pbix`
+- Data source: `localhost:5432`, database: `bangkok_property`
+
+---
+
+## 📦 After `docker-compose down`
+
+Packages are baked into the Docker image via `Dockerfile`, so no reinstallation is needed:
+
+```bash
+docker-compose up -d
+```
+
+---
+
+## 📈 Key Metrics Tracked
+
+- Property listings by district
+- Price distribution by property type
+- Price per sqm trends
+- Price tier breakdown
+- Bedroom count analysis
+
+---
+
+## 🔮 Future Improvements
+
+- [ ] Add email alerts on DAG failure
+- [ ] Scrape live data from property websites instead of CSV
+- [ ] Add dbt for data modeling layer
+- [ ] Deploy to cloud (Azure / AWS)
+- [ ] Add CI/CD pipeline with GitHub Actions

@@ -43,7 +43,7 @@ def transform_property_data(df: pd.DataFrame) -> pd.DataFrame:
     # --- Step 3: Keep only the columns we need ---
     required_cols = ['district', 'property_type', 'price', 'area_sqm',
                  'bedrooms', 'bathrooms', 'ingestion_date']
-    optional_cols = ['bathrooms', 'listing_date', 'title', 'url']
+    optional_cols = ['listing_date', 'title', 'url']
     
     keep_cols = [c for c in required_cols + optional_cols if c in df.columns]
     df = df[keep_cols]

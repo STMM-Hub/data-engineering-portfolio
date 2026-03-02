@@ -13,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   airflow-init:
-    image: apache/airflow:2.7.0
+    build: .
     container_name: airflow_init
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
@@ -28,15 +28,18 @@ services:
     command: version
 
   airflow-webserver:
-    image: apache/airflow:2.7.0
+    build: .
     container_name: airflow_webserver
+    env_file:
+      - .env                    # ← add this
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://sithu:sithu123@postgres/bangkok_property
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
-      AIRFLOW__WEBSERVER__SECRET_KEY: 'bangkok_property_secret_2026' 
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'bangkok_property_secret_2026'
     volumes:
       - ./dags:/opt/airflow/dags
+      - .:/opt/airflow/project
     ports:
       - "8080:8080"
     depends_on:
@@ -44,14 +47,17 @@ services:
     command: webserver
 
   airflow-scheduler:
-    image: apache/airflow:2.7.0
+    build: .
     container_name: airflow_scheduler
+    env_file:
+      - .env                    # ← add this
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://sithu:sithu123@postgres/bangkok_property
-      AIRFLOW__WEBSERVER__SECRET_KEY: 'bangkok_property_secret_2026' 
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'bangkok_property_secret_2026'
     volumes:
       - ./dags:/opt/airflow/dags
+      - .:/opt/airflow/project
     depends_on:
       - postgres
     command: scheduler

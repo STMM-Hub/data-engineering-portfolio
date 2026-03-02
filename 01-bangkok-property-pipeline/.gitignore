@@ -1,6 +1,21 @@
-venv/
+# Environment variables - never commit these
 .env
+
+# Python cache
 __pycache__/
 *.pyc
-*.duckdb
-data/*.csv
+*.pyo
+
+# Virtual environment
+venv/
+.venv/
+
+# Airflow logs
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp files created by pipeline
+/tmp/
