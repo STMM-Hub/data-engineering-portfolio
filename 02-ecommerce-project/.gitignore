@@ -1,8 +1,28 @@
+# Credentials - NEVER commit
 .env
+
+# Python
 venv/
 *.pyc
 __pycache__/
+*.pyo
+*.pyd
+.Python
+
+# dbt
 target/
 dbt_packages/
 logs/
+.dbt/
+
+# Data files - too large for GitHub
 data/raw/
+data/processed/
+*.csv
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
